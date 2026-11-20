@@ -8,10 +8,10 @@ Finance teams and bookkeepers still retype vendor names, dates and totals from P
 
 - **PDF and images** – PNG, JPG, WEBP, text PDFs and scanned PDFs (automatic fallback to vision when a PDF has no text layer)
 - **Hebrew and English** – including ₪ / ש"ח → `ILS` normalization
-- **Structured output** – vendor, tax ID, invoice number, date, currency, subtotal, VAT, total and line items, validated with Pydantic
-- **Built-in sanity checks** – flags when `subtotal + VAT ≠ total`, when line items don't add up, and when the model reports low confidence
+- **Structured output** – vendor, tax ID, invoice number, date, currency, discount, subtotal, VAT, total and line items, validated with Pydantic
+- **Built-in sanity checks** – flags when `subtotal + VAT ≠ total`, when line items minus discount don't match the subtotal, and when the model reports low confidence
 - **Swap providers with one env var** – OpenAI, Anthropic (Claude) or a mock provider for demos and tests
-- **Production basics** – Docker, upload size limits, clear error codes, 14 automated tests
+- **Production basics** – Docker, upload size limits, clear error codes, 18 automated tests
 
 ## Quick start
 

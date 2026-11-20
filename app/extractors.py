@@ -13,12 +13,15 @@ SYSTEM_PROMPT = """You extract structured data from invoices and receipts.
 The document may be in Hebrew, English or another language.
 Return ONLY a JSON object with these keys:
 vendor_name, vendor_tax_id, invoice_number, invoice_date (YYYY-MM-DD),
-currency (ISO 4217; ₪/ש"ח = ILS), subtotal, vat_amount, total_amount,
+currency (ISO 4217; ₪/ש"ח = ILS), discount (total discount before VAT, positive number),
+subtotal (amount before VAT, after discounts), vat_amount, total_amount,
 line_items (list of {description, quantity, unit_price, total}),
 language (ISO 639-1),
-confidence (object mapping each top-level field name to a number 0-1).
+confidence (object mapping each top-level field that has a value to a number 0-1;
+skip fields that are null).
 Use null for anything not present. Numbers must be plain numbers without
-currency symbols or thousands separators. Never invent values."""
+currency symbols or thousands separators. Copy every digit exactly as printed
+and double-check amounts. Never invent values."""
 
 
 class Extractor(Protocol):

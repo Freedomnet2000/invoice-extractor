@@ -18,7 +18,8 @@ class Invoice(BaseModel):
     invoice_number: Optional[str] = None
     invoice_date: Optional[str] = Field(None, description="ISO date, YYYY-MM-DD")
     currency: Optional[str] = Field(None, description="ISO 4217 code, e.g. USD, ILS, EUR")
-    subtotal: Optional[float] = None
+    discount: Optional[float] = Field(None, description="Total discount applied before VAT, as a positive number")
+    subtotal: Optional[float] = Field(None, description="Amount before VAT, after discounts")
     vat_amount: Optional[float] = None
     total_amount: Optional[float] = None
     line_items: list[LineItem] = Field(default_factory=list)

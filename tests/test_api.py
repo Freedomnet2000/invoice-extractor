@@ -58,8 +58,18 @@ def test_validation_flags_mismatched_totals():
 
 
 def test_validation_flags_low_confidence():
-    inv = Invoice(total_amount=10, confidence={"vendor_name": 0.3})
+    inv = Invoice(vendor_name="ACME", total_amount=10, confidence={"vendor_name": 0.3})
     assert any("low confidence" in w for w in check(inv))
+
+
+def test_validation_ignores_confidence_for_missing_fields():
+    # Invoice without VAT or tax ID: zero confidence on empty fields must not warn.
+    inv = Invoice(
+        subtotal=9.99,
+        total_amount=9.99,
+        confidence={"vendor_tax_id": 0.0, "vat_amount": 0.0, "total_amount": 1.0},
+    )
+    assert check(inv) == []
 
 
 def test_validation_accepts_consistent_invoice():
@@ -70,3 +80,29 @@ def test_validation_accepts_consistent_invoice():
         line_items=[{"description": "x", "total": 1000}],
     )
     assert check(inv) == []
+
+
+def test_validation_flags_small_total_mismatch():
+    # Real case: model swapped digits in the subtotal (4934.95 instead of 4943.95).
+    inv = Invoice(subtotal=4934.95, vat_amount=889.91, total_amount=5833.86)
+    assert any("does not match total" in w for w in check(inv))
+
+
+def test_validation_accepts_discount():
+    inv = Invoice(
+        discount=611.05,
+        subtotal=4943.95,
+        vat_amount=889.91,
+        total_amount=5833.86,
+        line_items=[{"description": "a", "total": 1234}, {"description": "b", "total": 4321}],
+    )
+    assert check(inv) == []
+
+
+def test_validation_flags_wrong_discount():
+    inv = Invoice(
+        discount=100,
+        subtotal=4943.95,
+        line_items=[{"description": "a", "total": 5555}],
+    )
+    assert any("minus discount" in w for w in check(inv))
