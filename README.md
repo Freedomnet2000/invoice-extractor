@@ -15,7 +15,11 @@ Finance teams and bookkeepers still retype vendor names, dates and totals from P
 
 ## Screenshots
 
-**Hebrew invoice → structured data** (discount, VAT and totals all reconciled, no warnings)
+**English invoice → structured data.** Discount, VAT and totals all reconcile, date normalized to ISO, no warnings. (Try it yourself: [`samples/sample-invoice-en.pdf`](samples/sample-invoice-en.pdf).)
+
+![Extraction result for an English invoice](docs/result-english.png)
+
+**Same API, Hebrew invoice.** Right-to-left text, ₪ amounts and Israeli VAT handled without any configuration.
 
 ![Extraction result for a Hebrew invoice](docs/result-hebrew.png)
 
@@ -110,6 +114,8 @@ upload ──► documents.py ──► text?  ──► extractors.py ──►
 ```bash
 pytest -q
 ```
+
+To try a real extraction, upload [`samples/sample-invoice-en.pdf`](samples/sample-invoice-en.pdf) – a fictional invoice with a discount, 20% VAT and GBP totals.
 
 Tests run against the mock provider, so they need no API key and no network.
 
