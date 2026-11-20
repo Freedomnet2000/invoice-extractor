@@ -13,6 +13,20 @@ Finance teams and bookkeepers still retype vendor names, dates and totals from P
 - **Swap providers with one env var** – OpenAI, Anthropic (Claude) or a mock provider for demos and tests
 - **Production basics** – Docker, upload size limits, clear error codes, 18 automated tests
 
+## Screenshots
+
+**Hebrew invoice → structured data** (discount, VAT and totals all reconciled, no warnings)
+
+![Extraction result for a Hebrew invoice](docs/result-hebrew.png)
+
+**The model makes a mistake – validation catches it.** On an earlier run the model swapped two digits in the subtotal (4934.95 instead of 4943.95). The totals no longer reconciled, so the API returned a warning instead of silently passing bad numbers downstream.
+
+![Validation warning on a misread subtotal](docs/validation-warning.png)
+
+**Interactive API docs** (Swagger, at `/docs`)
+
+![Swagger UI](docs/swagger.png)
+
 ## Quick start
 
 ```bash
@@ -52,6 +66,7 @@ Response:
     "invoice_number": "INV-1001",
     "invoice_date": "2026-11-01",
     "currency": "ILS",
+    "discount": null,
     "subtotal": 1000.0,
     "vat_amount": 180.0,
     "total_amount": 1180.0,
@@ -117,4 +132,4 @@ Tests run against the mock provider, so they need no API key and no network.
 
 ## License
 
-MIT
+[MIT](LICENSE)
