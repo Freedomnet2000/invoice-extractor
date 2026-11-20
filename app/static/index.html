@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice Extractor</title>
+<style>
+  :root { --fg:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#14532d; --warn:#92400e; --bg:#fafafa; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--fg); background: var(--bg); margin: 0; }
+  main { max-width: 880px; margin: 48px auto; padding: 0 20px; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  p.sub { margin: 0 0 28px; color: var(--muted); }
+  .drop { display: block; border: 2px dashed var(--line); border-radius: 12px; padding: 36px; text-align: center; background: #fff; cursor: pointer; }
+  .drop.over { border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .card h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td:first-child { color: var(--muted); width: 45%; }
+  pre { margin: 0; font-size: 12px; overflow: auto; max-height: 420px; }
+  .warn { color: var(--warn); font-size: 14px; margin: 4px 0; }
+  .status { margin-top: 12px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Invoice Extractor</h1>
+  <p class="sub">Upload an invoice (PDF or image, Hebrew or English) and get structured data back.</p>
+
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept=".pdf,.png,.jpg,.jpeg,.webp" hidden>
+    <strong>Drop a file here</strong> or click to choose
+  </label>
+  <div class="status" id="status"></div>
+
+  <div class="grid" id="results" hidden>
+    <div class="card"><h2>Extracted fields</h2><table id="fields"></table><div id="warnings"></div></div>
+    <div class="card"><h2>JSON response</h2><pre id="json"></pre></div>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const drop = $("drop"), input = $("file");
+const LABELS = {
+  vendor_name: "Vendor", vendor_tax_id: "Tax ID", invoice_number: "Invoice #",
+  invoice_date: "Date", currency: "Currency", subtotal: "Subtotal",
+  vat_amount: "VAT", total_amount: "Total"
+};
+
+function cell(text) { const td = document.createElement("td"); td.textContent = text; return td; }
+
+async function upload(file) {
+  $("status").textContent = "Extracting…";
+  $("results").hidden = true;
+  const body = new FormData();
+  body.append("file", file);
+  try {
+    const res = await fetch("/extract", { method: "POST", body });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+    render(data);
+    $("status").textContent = `Done · ${data.provider}/${data.model} · read as ${data.source}`;
+  } catch (err) {
+    $("status").textContent = "Error: " + err.message;
+  }
+}
+
+function render(data) {
+  const table = $("fields");
+  table.replaceChildren();
+  for (const [key, label] of Object.entries(LABELS)) {
+    const tr = document.createElement("tr");
+    const v = data.invoice[key];
+    tr.append(cell(label), cell(v === null || v === undefined ? "—" : String(v)));
+    table.append(tr);
+  }
+  const tr = document.createElement("tr");
+  tr.append(cell("Line items"), cell(String(data.invoice.line_items.length)));
+  table.append(tr);
+
+  const w = $("warnings");
+  w.replaceChildren();
+  for (const msg of data.warnings) {
+    const div = document.createElement("div");
+    div.className = "warn";
+    div.textContent = "⚠ " + msg;
+    w.append(div);
+  }
+  $("json").textContent = JSON.stringify(data, null, 2);
+  $("results").hidden = false;
+}
+
+input.addEventListener("change", () => input.files[0] && upload(input.files[0]));
+drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", (e) => {
+  e.preventDefault(); drop.classList.remove("over");
+  if (e.dataTransfer.files[0]) upload(e.dataTransfer.files[0]);
+});
+</script>
+</body>
+</html>
